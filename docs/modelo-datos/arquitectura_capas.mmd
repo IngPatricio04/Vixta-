@@ -1,0 +1,17 @@
+flowchart TD
+    UI["<b>INTERFAZ</b> · Jetpack Compose<br/><i>Las 8 pantallas. No sabe de donde vienen los datos.</i>"]
+    VM["<b>VIEWMODEL</b> · StateFlow<br/><i>Mantiene el estado de cada pantalla.</i>"]
+    REPO["<b>REPOSITORIO</b><br/><i>Unica puerta a los datos.</i>"]
+    ROOM["<b>ROOM</b> · local<br/><i>SQLite en el telefono. Aqui se escribe siempre primero.</i>"]
+    SUPA["<b>SUPABASE</b> · remoto<br/><i>PostgreSQL. Se alcanza solo cuando hay red.</i>"]
+    UI <--> VM
+    VM <--> REPO
+    REPO -- "siempre" --> ROOM
+    REPO -. "diferido" .-> SUPA
+    ROOM -- "WorkManager" --> SUPA
+    classDef a fill:#EEF3FB,stroke:#1B3A93,stroke-width:2px,color:#14213D
+    classDef b fill:#E8F6EE,stroke:#12A05C,stroke-width:2px,color:#0B3D26
+    classDef c fill:#FDF3E6,stroke:#F0932B,stroke-width:2px,color:#5B3A0B
+    class UI,VM,REPO a
+    class ROOM b
+    class SUPA c

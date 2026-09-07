@@ -1,0 +1,16 @@
+flowchart TD
+    A["El inspector captura evidencia"] --> B["Se escribe en Room<br/><b>sincronizada = false</b><br/><i>con su id_local generado en el telefono</i>"]
+    B --> C["La interfaz responde de inmediato<br/><i>el usuario sigue con su ronda</i>"]
+    C --> D["WorkManager espera a que haya red<br/><i>sobrevive a que cierren la aplicacion</i>"]
+    D --> E["Envia el registro con su id_local"]
+    E --> F{"El servidor ya tiene<br/>ese id_local?"}
+    F -- "Si" --> G["Lo descarta<br/><b>El registro no se duplica</b>"]
+    F -- "No" --> H["Lo inserta y marca<br/><b>sincronizada = true</b>"]
+    classDef a fill:#EEF3FB,stroke:#1B3A93,stroke-width:2px,color:#14213D
+    classDef d fill:#FDF2E9,stroke:#C0392B,stroke-width:2px,color:#7B241C
+    classDef no fill:#FBEAE8,stroke:#C0392B,stroke-width:2px,color:#7B241C
+    classDef si fill:#E8F6EE,stroke:#12A05C,stroke-width:2px,color:#0B3D26
+    class A,B,C,D,E a
+    class F d
+    class G no
+    class H si

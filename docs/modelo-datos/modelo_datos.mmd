@@ -1,0 +1,76 @@
+erDiagram
+    usuario ||--o{ ronda : "ejecuta"
+    punto_frio ||--o{ ronda : "es inspeccionado en"
+    ronda ||--o{ paso_ronda : "se compone de"
+    ronda ||--o{ inspeccion : "produce"
+    lote ||--o{ inspeccion : "identifica"
+    inspeccion ||--o{ alerta : "origina"
+    usuario ||--o{ alerta : "atiende"
+
+    usuario {
+        uuid id PK
+        text nombre
+        text correo UK
+        text rol "operador | supervisor"
+        boolean activo
+    }
+
+    punto_frio {
+        uuid id PK
+        text codigo UK "contenido del QR"
+        text nombre
+        text tipo "camara | tarima | anden"
+        text ubicacion
+    }
+
+    lote {
+        uuid id PK
+        text codigo UK
+        text descripcion
+    }
+
+    ronda {
+        uuid id PK
+        uuid id_local UK "generado en el telefono"
+        uuid punto_id FK
+        uuid usuario_id FK
+        timestamptz iniciada_en
+        timestamptz cerrada_en
+        text estado
+        boolean sincronizada
+    }
+
+    paso_ronda {
+        uuid id PK
+        uuid ronda_id FK
+        integer orden
+        text descripcion
+        boolean completado
+    }
+
+    inspeccion {
+        uuid id PK
+        uuid id_local UK "generado en el telefono"
+        uuid ronda_id FK
+        uuid lote_id FK
+        text foto_url
+        text clase "una de las 4"
+        numeric confianza
+        text origen "modelo | manual"
+        timestamptz capturada_en
+        numeric lat
+        numeric lon
+        numeric precision_gps "metros"
+        boolean sincronizada
+    }
+
+    alerta {
+        uuid id PK
+        uuid inspeccion_id FK
+        text tipo
+        text severidad
+        timestamptz abierta_en
+        uuid atendida_por FK
+        timestamptz atendida_en
+        text estado
+    }
