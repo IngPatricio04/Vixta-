@@ -19,7 +19,7 @@ fun VixtaNavHost() {
     NavHost(navController = navController, startDestination = "login") {
 
         composable("login") {
-            LoginScreen(onLoginSuccess = { navController.navigate("dashboard") })
+            LoginScreen(onLoginSuccess = { rol -> navController.navigate("dashboard") })
         }
 
         composable("dashboard") {
