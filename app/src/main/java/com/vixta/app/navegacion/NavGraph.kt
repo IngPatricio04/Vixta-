@@ -1,21 +1,30 @@
 package com.vixta.app.navegacion
+
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.vixta.app.login.LoginScreen
-import com.vixta.app.dashboard.DashboardScreen
-import com.vixta.app.escaneo.EscaneoScreen
-import com.vixta.app.inspeccion.InspeccionScreen
-import com.vixta.app.revision.RevisionScreen
 import com.vixta.app.alertas.AlertasScreen
-import com.vixta.app.historial.HistorialScreen
+import com.vixta.app.alertas.AlertasViewModel
 import com.vixta.app.configuracion.ConfiguracionScreen
+import com.vixta.app.dashboard.DashboardScreen
+import com.vixta.app.dashboard.DashboardViewModel
+import com.vixta.app.escaneo.EscaneoScreen
+import com.vixta.app.escaneo.EscaneoViewModel
+import com.vixta.app.historial.HistorialScreen
+import com.vixta.app.inspeccion.InspeccionScreen
+import com.vixta.app.inspeccion.InspeccionViewModel
+import com.vixta.app.login.LoginScreen
+import com.vixta.app.revision.RevisionScreen
 
 @Composable
-fun VixtaNavHost() {
-    val navController = rememberNavController()
-
+fun VixtaNavHost(
+    navController: NavHostController,
+    dashboardViewModel: DashboardViewModel,
+    escaneoViewModel: EscaneoViewModel,
+    inspeccionViewModel: InspeccionViewModel,
+    alertasViewModel: AlertasViewModel
+) {
     NavHost(navController = navController, startDestination = "login") {
 
         composable("login") {
@@ -24,19 +33,25 @@ fun VixtaNavHost() {
 
         composable("dashboard") {
             DashboardScreen(
+                viewModel = dashboardViewModel,
                 onIrAEscanear = { navController.navigate("escaneo") },
-                onIrAAlertas = { navController.navigate("alertas") },
-                onIrAHistorial = { navController.navigate("historial") },
-                onIrAConfiguracion = { navController.navigate("configuracion") }
+                onIrAAlertas = { navController.navigate("alertas") }
             )
         }
 
         composable("escaneo") {
-            EscaneoScreen(onCodigoEscaneado = { navController.navigate("inspeccion") })
+            EscaneoScreen(
+                viewModel = escaneoViewModel,
+                onCodigoEscaneado = { navController.navigate("inspeccion") },
+                onVolverAlTablero = { navController.popBackStack() }
+            )
         }
 
         composable("inspeccion") {
-            InspeccionScreen(onSiguiente = { navController.navigate("revision") })
+            InspeccionScreen(
+                viewModel = inspeccionViewModel,
+                onSiguiente = { navController.navigate("revision") }
+            )
         }
 
         composable("revision") {
@@ -44,7 +59,10 @@ fun VixtaNavHost() {
         }
 
         composable("alertas") {
-            AlertasScreen(onVolver = { navController.popBackStack() })
+            AlertasScreen(
+                viewModel = alertasViewModel,
+                onVolver = { navController.popBackStack() }
+            )
         }
 
         composable("historial") {
