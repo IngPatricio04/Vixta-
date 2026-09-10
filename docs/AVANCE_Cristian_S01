@@ -1,0 +1,18 @@
+# AVANCE — Cristian — semana 1
+
+## Qué hice
+- Diseñé e implementé la interfaz de la Pantalla 2 (Tablero de puntos fríos) con estado semáforo y paleta Material 3.
+- Creé la vista de la Pantalla 3 (Escaneo QR) lista para la integración con la cámara.
+- Construí la interfaz de la Pantalla 5 (Checklist de ronda) para registro paso a paso.
+- Implementé la Pantalla 6 (Alertas) para la atención y constancia de incidencias.
+- Conecté los ViewModels de cada pantalla con la base de datos local (Room) usando StateFlow.
+- Creé y respaldé localmente la rama `feature/dashboard` aplicando los colores oficiales del tema.
+
+## Cómo lo hice
+Implementé la arquitectura MVVM junto con Jetpack Compose y Material 3. Para cumplir con el principio Offline-first, conecté la interfaz a la base de datos local de Room (`AppDatabase` / `VixtaDao`), asegurando que la captura de marcas de tiempo (`System.currentTimeMillis()`) y UUIDs se haga desde la lógica del dispositivo antes de cualquier sincronización.
+
+## Qué entrego
+Rama local `feature/dashboard` con la estructura completa del Frontend B. Se verifica así: compilar la aplicación, navegar entre el Tablero, Escaneo, Inspección y Alertas; los datos de prueba se cargan dinámicamente desde Room y persisten los cambios al interactuar con las listas.
+
+## Qué me bloqueó
+Sin bloqueos por el momento. Quedo en espera de que Pablo integre la cola de sincronización remota y Patricio revise la rama cuando sea momento de hacer merge a develop.
