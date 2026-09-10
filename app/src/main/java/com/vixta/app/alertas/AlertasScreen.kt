@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,14 +24,24 @@ fun AlertasScreen(
     var notaTexto by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Alertas Pendientes", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Alertas Pendientes",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
                 navigationIcon = {
                     TextButton(onClick = onVolver) {
-                        Text("Volver")
+                        Text("Volver", color = MaterialTheme.colorScheme.primary)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { paddingValues ->
@@ -45,7 +54,7 @@ fun AlertasScreen(
             ) {
                 Text(
                     text = "No hay alertas pendientes por atender.",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp
                 )
             }
@@ -70,7 +79,7 @@ fun AlertasScreen(
         alertaAAtender?.let { alerta ->
             AlertDialog(
                 onDismissRequest = { alertaAAtender = null },
-                title = { Text("Atender Alerta") },
+                title = { Text("Atender Alerta", fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
                         Text("Ingresa la constancia de atención para: ${alerta.titulo}")
@@ -91,7 +100,10 @@ fun AlertasScreen(
                                 notaTexto = ""
                                 alertaAAtender = null
                             }
-                        }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
                     ) {
                         Text("Guardar Constancia")
                     }
@@ -114,7 +126,9 @@ fun AlertaItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
     ) {
         Column(
             modifier = Modifier
@@ -125,18 +139,20 @@ fun AlertaItemCard(
                 text = alerta.titulo,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFC62828)
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = alerta.descripcion,
                 fontSize = 14.sp,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = onAtenderClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Atender Evento")

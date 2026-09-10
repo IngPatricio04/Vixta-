@@ -26,24 +26,37 @@ fun DashboardScreen(
     onIrAEscanear: () -> Unit,
     onIrAAlertas: () -> Unit
 ) {
-    // Escucha la base de datos Room en tiempo real mediante StateFlow
     val puntosFrios by viewModel.puntosFrios.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Tablero de Puntos Fríos", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Tablero de Puntos Fríos",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
                 actions = {
                     TextButton(onClick = onIrAAlertas) {
-                        Text("Alertas")
+                        Text(
+                            "Alertas",
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onIrAEscanear,
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
             ) {
                 Text("Escanear QR")
             }
@@ -58,7 +71,7 @@ fun DashboardScreen(
             ) {
                 Text(
                     text = "No hay puntos fríos registrados",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp
                 )
             }
@@ -81,9 +94,9 @@ fun DashboardScreen(
 @Composable
 fun PuntoFrioItem(punto: PuntoFrio) {
     val colorSemaforo = when (punto.estado) {
-        EstadoSemaforo.AL_DIA -> Color(0xFF2E7D32) // Verde
-        EstadoSemaforo.PENDIENTE -> Color(0xFFF57C00) // Naranja / Amarillo
-        EstadoSemaforo.CON_ALERTA -> Color(0xFFC62828) // Rojo
+        EstadoSemaforo.AL_DIA -> MaterialTheme.colorScheme.primary
+        EstadoSemaforo.PENDIENTE -> MaterialTheme.colorScheme.secondary
+        EstadoSemaforo.CON_ALERTA -> MaterialTheme.colorScheme.error
     }
 
     Card(
@@ -108,11 +121,10 @@ fun PuntoFrioItem(punto: PuntoFrio) {
                 Text(
                     text = "Ubicación: ${punto.ubicacion}",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            // Indicador visual del Semáforo
             Box(
                 modifier = Modifier
                     .size(20.dp)

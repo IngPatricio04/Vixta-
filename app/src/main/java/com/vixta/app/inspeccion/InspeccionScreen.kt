@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,23 +27,38 @@ fun InspeccionScreen(
     val pasos by viewModel.pasos.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Lista de Inspección", fontWeight = FontWeight.Bold) }
+                title = {
+                    Text(
+                        "Lista de Inspección",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         },
         bottomBar = {
             Surface(
                 shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
                     onClick = onSiguiente,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text("Continuar")
+                    Text("Continuar", fontSize = 16.sp)
                 }
             }
         }
@@ -58,7 +72,7 @@ fun InspeccionScreen(
             ) {
                 Text(
                     text = "No hay puntos de verificación asignados.",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp
                 )
             }
@@ -91,7 +105,10 @@ fun PasoItemRow(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (paso.verificado) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.surface
+            containerColor = if (paso.verificado)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
@@ -104,11 +121,18 @@ fun PasoItemRow(
             Text(
                 text = paso.descripcionPaso,
                 fontSize = 16.sp,
+                color = if (paso.verificado)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
             )
             Checkbox(
                 checked = paso.verificado,
-                onCheckedChange = onCheckChanged
+                onCheckedChange = onCheckChanged,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
