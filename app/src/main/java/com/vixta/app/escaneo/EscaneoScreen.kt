@@ -1,13 +1,29 @@
 package com.vixta.app.escaneo
 
+import android.Manifest
+import android.content.contentvalues.ContentValues.TAG
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -17,7 +33,24 @@ fun EscaneoScreen(
     onCodigoEscaneado: () -> Unit,
     onVolverAlTablero: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val estado by viewModel.estado.collectAsState()
+
+    // Estado local para verificar si el usuario aceptó el permiso
+    var tienePermisoCamara by remember { mutableStateOf(false) }
+
+    // Launcher oficial de Jetpack Compose para solicitar permisos
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        tienePermisoCamara = isGranted
+    }
+
+    // Al abrir la pantalla, se solicita el permiso de la cámara
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(Manifest.permission.CAMERA)
+    }
 
     // Reacciona al cambio de estado en el ViewModel cuando se completa el registro
     LaunchedEffect(estado) {
@@ -51,34 +84,119 @@ fun EscaneoScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "Simulador de Escaneo QR",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            if (tienePermisoCamara) {
+                Text(
+                    text = "Apunta la cámara al código QR",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Presiona el botón para simular la lectura de QR de una cámara fría y registrar la evidencia de hardware (GPS y Timestamp).",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+                // Visor de Cámara Real con CameraX y lector de QR ML Kit
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                ) {
+                    AndroidView(
+                        factory = { ctx ->
+                            val previewView = PreviewView(ctx)
+                            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
-            Spacer(modifier = Modifier.height(32.dp))
+                            cameraProviderFuture.addListener({
+                                val cameraProvider = cameraProviderFuture.get()
+                                val preview = Preview.Builder().build().also {
+                                    it.setSurfaceProvider(previewView.surfaceProvider)
+                                }
+
+                                // Configuración de ML Kit para escanear QR en tiempo real
+                                val imageAnalysis = ImageAnalysis.Builder()
+                                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                    .build()
+
+                                val scanner = BarcodeScanning.getClient()
+
+                                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy ->
+                                    val mediaImage = imageProxy.image
+                                    if (mediaImage != null) {
+                                        val image = InputImage.fromMediaImage(
+                                            mediaImage,
+                                            imageProxy.imageInfo.rotationDegrees
+                                        )
+                                        scanner.process(image)
+                                            .addOnSuccessListener { barcodes ->
+                                                for (barcode in barcodes) {
+                                                    val valorQr = barcode.rawValue
+                                                    if (!valorQr.isNullOrEmpty() && estado !is EscaneoState.Cargando) {
+                                                        // Procesa el QR detectado con las coordenadas
+                                                        viewModel.procesarQrEscaneado(
+                                                            puntoFrioId = valorQr,
+                                                            usuarioId = usuarioId,
+                                                            latitud = 25.6866,
+                                                            longitud = -100.3161,
+                                                            precisionGps = 4.5f
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            .addOnCompleteListener {
+                                                imageProxy.close()
+                                            }
+                                    } else {
+                                        imageProxy.close()
+                                    }
+                                }
+
+                                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                                try {
+                                    cameraProvider.unbindAll()
+                                    cameraProvider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        cameraSelector,
+                                        preview,
+                                        imageAnalysis
+                                    )
+                                } catch (exc: Exception) {
+                                    Log.e(TAG, "Error al vincular cámara", exc)
+                                }
+                            }, ContextCompat.getMainExecutor(ctx))
+
+                            previewView
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            } else {
+                // Vista si el usuario aún no otorga el permiso
+                Text(
+                    text = "Se requiere permiso de la cámara para escanear los códigos QR.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("Conceder Permiso")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             when (estado) {
                 is EscaneoState.Cargando -> {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Generando registro local...",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Guardando registro...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 is EscaneoState.Error -> {
                     Text(
@@ -86,33 +204,11 @@ fun EscaneoScreen(
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
                 else -> {}
             }
 
-            Button(
-                onClick = {
-                    // Guarda la ronda en Room con UUID, fecha y coordenadas GPS automáticas
-                    viewModel.procesarQrEscaneado(
-                        puntoFrioId = "PF-01",
-                        usuarioId = usuarioId,
-                        latitud = 25.6866,
-                        longitud = -100.3161,
-                        precisionGps = 4.5f
-                    )
-                },
-                enabled = estado !is EscaneoState.Cargando,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Simular escaneo")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedButton(
                 onClick = onVolverAlTablero,
