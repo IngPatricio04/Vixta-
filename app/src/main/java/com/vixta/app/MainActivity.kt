@@ -21,13 +21,10 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Apertura temporal de la base local para verificarla.
+        // Apertura temporal de la base local.
         lifecycleScope.launch {
-            val dao = DatabaseProvider
-                .obtener(applicationContext)
-                .puntoFrioDao()
-
-            dao.buscarPorCodigo("__prueba_apertura__")
+            val base = DatabaseProvider.obtener(applicationContext)
+            base.puntoFrioDao().buscarPorCodigo("__prueba_apertura__")
         }
         enableEdgeToEdge()
         setContent {
