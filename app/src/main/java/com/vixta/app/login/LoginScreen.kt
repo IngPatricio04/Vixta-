@@ -10,8 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.vixta.app.R
 
 @Composable
 fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
@@ -19,24 +25,52 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
     var contrasena by remember { mutableStateOf("") }
     var rolSeleccionado by remember { mutableStateOf("Operador") }
 
+    var errorUsuario by remember { mutableStateOf<String?>(null) }
+    var errorContrasena by remember { mutableStateOf<String?>(null) }
+    var errorGeneral by remember { mutableStateOf<String?>(null) }
+    var cargando by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
+    fun intentarLogin() {
+        errorUsuario = if (usuario.isBlank()) "Escribe tu usuario" else null
+        errorContrasena = if (contrasena.isBlank()) "Escribe tu contraseña" else null
+        errorGeneral = null
+
+        if (errorUsuario != null || errorContrasena != null) return
+
+        cargando = true
+        scope.launch {
+            delay(800) // simula la espera de la autenticación real
+            // TODO: reemplazar por la autenticación de Cristopher
+            if (usuario == "demo" && contrasena == "1234") {
+                cargando = false
+                onLoginSuccess(rolSeleccionado)
+            } else {
+                cargando = false
+                errorGeneral = "Usuario o contraseña incorrectos"
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF0A1230), Color(0xFF1657C9))
-                )
+                Brush.verticalGradient(listOf(Color(0xFF0A1230), Color(0xFF1657C9)))
             )
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            "Vixta",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+        Image(
+            painter = painterResource(id = R.drawable.logo_vixta),
+            contentDescription = "Logo de Vixta",
+            modifier = Modifier.size(96.dp)
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Vixta", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(
             "Inspección de cadena de frío",
             color = Color.White.copy(alpha = 0.7f),
@@ -47,8 +81,18 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
 
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it },
+            onValueChange = {
+                usuario = it
+                errorUsuario = null
+                errorGeneral = null
+            },
             label = { Text("Usuario") },
+            singleLine = true,
+            isError = errorUsuario != null,
+            enabled = !cargando,
+            supportingText = {
+                errorUsuario?.let { Text(it, color = Color(0xFFFFB4AB)) }
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedTextColor = Color.White,
@@ -58,13 +102,23 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
             )
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = contrasena,
-            onValueChange = { contrasena = it },
+            onValueChange = {
+                contrasena = it
+                errorContrasena = null
+                errorGeneral = null
+            },
             label = { Text("Contraseña") },
-            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            isError = errorContrasena != null,
+            enabled = !cargando,
+            supportingText = {
+                errorContrasena?.let { Text(it, color = Color(0xFFFFB4AB)) }
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedTextColor = Color.White,
@@ -74,16 +128,20 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
             )
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text("Ingresar como", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             listOf("Operador", "Supervisor").forEach { rol ->
                 val seleccionado = rol == rolSeleccionado
                 Button(
                     onClick = { rolSeleccionado = rol },
+                    enabled = !cargando,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (seleccionado) Color.White else Color.Transparent,
@@ -96,14 +154,34 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
             }
         }
 
+        if (errorGeneral != null) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                errorGeneral!!,
+                color = Color(0xFFFFB4AB),
+                fontSize = 13.sp
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { onLoginSuccess(rolSeleccionado) },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+            onClick = { intentarLogin() },
+            enabled = !cargando,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF14B8A6))
         ) {
-            Text("Iniciar sesión", fontWeight = FontWeight.Bold)
+            if (cargando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Iniciar sesión", fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
