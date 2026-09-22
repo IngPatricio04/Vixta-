@@ -21,6 +21,7 @@ lo encuentre sin pedirlo por WhatsApp.
 | `manuales/CONSULTAS_TRAZABILIDAD.md` | Consultas de historial por lote, punto frío y rango de fechas | 21-sep-2026 |
 | `manuales/MATRIZ_RLS.md` | Matriz de permisos para operador y supervisor | 21-sep-2026 |
 | `manuales/DISENO_ALMACENAMIENTO_EVIDENCIA.md` | Diseño offline-first para fotos y evidencia en Supabase Storage | 22-sep-2026 |
+| `manuales/FICHA_ENDPOINTS.md` | Contrato de los endpoints y reglas de validación para la actividad 19 | 22-sep-2026 |
 | `manuales/` | Manual de usuario | pendiente, noviembre |
 
 Los archivos `.mmd` son el código fuente de los diagramas: se editan como texto y se regeneran,
