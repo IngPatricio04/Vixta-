@@ -23,6 +23,7 @@ lo encuentre sin pedirlo por WhatsApp.
 | `manuales/DISENO_ALMACENAMIENTO_EVIDENCIA.md` | Diseño offline-first para fotos y evidencia en Supabase Storage | 22-sep-2026 |
 | `manuales/FICHA_ENDPOINTS.md` | Contrato de los endpoints y reglas de validación para la actividad 19 | 22-sep-2026 |
 | `manuales/DICCIONARIO_DATOS.md` | Referencia de las siete tablas, sus campos, relaciones y reglas | 22-sep-2026 |
+| `manuales/PLAN_PRUEBAS_DATOS.md` | Casos, evidencia y dependencias para validar datos y endpoints | 22-sep-2026 |
 | `manuales/` | Manual de usuario | pendiente, noviembre |
 
 Los archivos `.mmd` son el código fuente de los diagramas: se editan como texto y se regeneran,
