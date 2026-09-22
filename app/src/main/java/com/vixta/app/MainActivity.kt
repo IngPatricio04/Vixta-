@@ -16,15 +16,29 @@ import com.vixta.app.navegacion.VixtaNavHost
 import androidx.lifecycle.lifecycleScope
 import com.vixta.app.datos.local.DatabaseProvider
 import kotlinx.coroutines.launch
-
+import android.util.Log
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Apertura temporal de la base local.
+        // Comprobación temporal de la cola local.
         lifecycleScope.launch {
             val base = DatabaseProvider.obtener(applicationContext)
-            base.puntoFrioDao().buscarPorCodigo("__prueba_apertura__")
+
+            val rondas = base.rondaDao().observarPendientes().first()
+            val inspecciones = base.inspeccionDao().observarPendientes().first()
+            Log.i(
+                "PruebaCola",
+                "Pendientes: ${rondas.size} rondas y ${inspecciones.size} inspecciones"
+            )
+
+            inspecciones.forEach { inspeccion ->
+                Log.i(
+                    "PruebaCola",
+                    "Inspección pendiente: ${inspeccion.id_local}"
+                )
+            }
         }
         enableEdgeToEdge()
         setContent {
