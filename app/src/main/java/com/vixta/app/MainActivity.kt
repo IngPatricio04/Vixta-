@@ -18,10 +18,25 @@ import com.vixta.app.datos.local.DatabaseProvider
 import kotlinx.coroutines.launch
 import android.util.Log
 import kotlinx.coroutines.flow.first
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.vixta.app.datos.sincronizacion.PruebaColaWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val pruebaCola = OneTimeWorkRequestBuilder<PruebaColaWorker>()
+            .setInitialDelay(30, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(applicationContext)
+            .enqueueUniqueWork(
+                "prueba-lectura-cola",
+                ExistingWorkPolicy.KEEP,
+                pruebaCola
+            )
         // Comprobación temporal de la cola local.
         lifecycleScope.launch {
             val base = DatabaseProvider.obtener(applicationContext)
