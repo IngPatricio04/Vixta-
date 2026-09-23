@@ -24,11 +24,18 @@ import androidx.work.WorkManager
 import com.vixta.app.datos.sincronizacion.PruebaColaWorker
 import java.util.concurrent.TimeUnit
 import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.NetworkType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val restricciones = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         val pruebaCola = OneTimeWorkRequestBuilder<PruebaColaWorker>()
+            .setConstraints(restricciones)
             .setInitialDelay(30, TimeUnit.SECONDS)
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
