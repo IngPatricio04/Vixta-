@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vixta.app.R
 import com.vixta.app.datos.local.PreferenciasUsuario
-import kotlinx.coroutines.delay
+import com.vixta.app.datos.remoto.AuthRepositorio
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
 
@@ -43,7 +43,6 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
     var usuario by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var mostrarContrasena by remember { mutableStateOf(false) }
-    var rolSeleccionado by remember { mutableStateOf("Operador") }
 
     var errorUsuario by remember { mutableStateOf<String?>(null) }
     var errorContrasena by remember { mutableStateOf<String?>(null) }
@@ -61,7 +60,7 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
         val usuarioLimpio = usuario.trim()
         val contrasenaLimpia = contrasena.trim()
 
-        errorUsuario = if (usuarioLimpio.isBlank()) "Escribe tu usuario" else null
+        errorUsuario = if (usuarioLimpio.isBlank()) "Escribe tu correo" else null
         errorContrasena = if (contrasenaLimpia.isBlank()) "Escribe tu contraseña" else null
         errorGeneral = null
 
@@ -70,16 +69,16 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
         keyboardController?.hide()
         cargando = true
         scope.launch {
-            delay(800) // simula la espera de la autenticación real
-            // TODO: reemplazar por la autenticación de Cristopher
-            if (usuarioLimpio == "demo" && contrasenaLimpia == "1234") {
-                PreferenciasUsuario.guardarUltimoUsuario(context, usuarioLimpio)
-                cargando = false
-                onLoginSuccess(rolSeleccionado)
-            } else {
-                cargando = false
-                errorGeneral = "Usuario o contraseña incorrectos"
-            }
+            // Actividad 12: Supabase Auth valida la cuenta y el rol sale de la tabla usuario.
+            // La contraseña va tal cual se escribió: un espacio puede ser parte de ella.
+            val resultado = AuthRepositorio.iniciarSesion(context, usuarioLimpio, contrasena)
+            cargando = false
+            resultado
+                .onSuccess { sesion ->
+                    PreferenciasUsuario.guardarUltimoUsuario(context, sesion.correo)
+                    onLoginSuccess(sesion.rol)
+                }
+                .onFailure { errorGeneral = it.message }
         }
     }
 
@@ -127,7 +126,7 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
                     errorUsuario = null
                     errorGeneral = null
                 },
-                label = { Text("Usuario") },
+                label = { Text("Correo") },
                 singleLine = true,
                 isError = errorUsuario != null,
                 enabled = !cargando,
@@ -135,7 +134,7 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
                     errorUsuario?.let { Text(it, color = Color(0xFFFFB4AB)) }
                 },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -198,31 +197,14 @@ fun LoginScreen(onLoginSuccess: (rol: String) -> Unit) {
                 )
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text("Ingresar como", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf("Operador", "Supervisor").forEach { rol ->
-                    val seleccionado = rol == rolSeleccionado
-                    Button(
-                        onClick = { rolSeleccionado = rol },
-                        enabled = !cargando,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (seleccionado) Color.White else Color.Transparent,
-                            contentColor = if (seleccionado) Color(0xFF0E1A45) else Color.White
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(rol, fontSize = 13.sp)
-                    }
-                }
-            }
+            // Actividad 12: ya no se escoge el rol aquí. Lo asigna el supervisor en la base
+            // (usuario.rol) y la app lo lee al entrar; escogerlo en pantalla dejaba a
+            // cualquiera entrar como supervisor.
+            Text(
+                "Tu rol lo asigna el supervisor",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 12.sp
+            )
 
             if (errorGeneral != null) {
                 Spacer(modifier = Modifier.height(12.dp))

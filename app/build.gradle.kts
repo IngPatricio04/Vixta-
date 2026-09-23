@@ -1,7 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Supabase (actividad 12): la URL y la llave pública salen de local.properties, que NO se sube a Git.
+// Si faltan, la app compila igual y el login avisa que falta configurar el servidor.
+val propiedadesLocales = Properties().apply {
+    val archivo = rootProject.file("local.properties")
+    if (archivo.exists()) archivo.inputStream().use { load(it) }
+}
+fun propiedadLocal(nombre: String): String = propiedadesLocales.getProperty(nombre, "").trim()
 
 android {
     namespace = "com.vixta.app"
@@ -17,6 +27,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SUPABASE_URL", "\"${propiedadLocal("supabase.url")}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${propiedadLocal("supabase.key")}\"")
     }
 
     buildTypes {
@@ -32,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -53,4 +67,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("com.squareup.okhttp3:okhttp:5.5.0")
 }

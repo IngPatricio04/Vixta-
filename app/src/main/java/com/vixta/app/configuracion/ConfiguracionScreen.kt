@@ -4,13 +4,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vixta.app.datos.remoto.AuthRepositorio
+import com.vixta.app.datos.remoto.SesionUsuario
+import kotlinx.coroutines.launch
 
 // Estos son los datos que la pantalla necesita para dibujarse.
 // Quien conecte la data real solo tiene que crear un ConfiguracionUiState
@@ -36,8 +44,14 @@ fun ConfiguracionScreen(
         hayConexion = false
     ),
     onSincronizarAhora: () -> Unit = {},
-    onVolver: () -> Unit = {}
+    onVolver: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
+    // Actividad 12: quién tiene la sesión y con qué rol, tal como vino de la base
+    val sesion by AuthRepositorio.sesion.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,6 +59,19 @@ fun ConfiguracionScreen(
     ) {
         Text("Configuración", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
+
+        sesion?.let { actual ->
+            TarjetaSesion(
+                sesion = actual,
+                onCerrarSesion = {
+                    scope.launch {
+                        AuthRepositorio.cerrarSesion(context)
+                        onCerrarSesion()
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         Column(
             modifier = Modifier
@@ -119,6 +146,45 @@ fun ConfiguracionScreen(
 
         OutlinedButton(onClick = onVolver, modifier = Modifier.fillMaxWidth()) {
             Text("Volver")
+        }
+    }
+}
+
+/** Nombre, correo y rol de quien tiene la sesión, con la salida. Colores del tema, no hex sueltos. */
+@Composable
+private fun TarjetaSesion(sesion: SesionUsuario, onCerrarSesion: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(sesion.nombre, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(sesion.correo, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(6.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        if (sesion.esSupervisor) MaterialTheme.colorScheme.secondary
+                        else MaterialTheme.colorScheme.primary
+                    )
+                    .padding(horizontal = 10.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    sesion.rolLegible,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (sesion.esSupervisor) MaterialTheme.colorScheme.onSecondary
+                    else MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
+        OutlinedButton(onClick = onCerrarSesion) {
+            Text("Cerrar sesión")
         }
     }
 }
