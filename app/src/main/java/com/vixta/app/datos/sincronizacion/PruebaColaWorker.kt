@@ -12,6 +12,18 @@ class PruebaColaWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        Log.i(
+            "PruebaWorker",
+            "Tarea: $id | Intento de prueba: ${runAttemptCount + 1}"
+        )
+
+        if (runAttemptCount == 0) {
+            Log.i(
+                "PruebaWorker",
+                "Fallo simulado: se solicita un reintento"
+            )
+            return Result.retry()
+        }
         val base = DatabaseProvider.obtener(applicationContext)
 
         val rondas = base.rondaDao().obtenerPendientes()
