@@ -26,15 +26,13 @@ class PruebaColaWorker(
         }
         val base = DatabaseProvider.obtener(applicationContext)
 
-        val rondas = base.rondaDao().obtenerPendientes()
-        val inspecciones = base.inspeccionDao().obtenerPendientes()
+        val pendientes = ColaSincronizacionLocal(base).obtenerPendientes()
 
         Log.i(
             "PruebaWorker",
-            "Lectura en segundo plano: ${rondas.size} rondas y " +
-                    "${inspecciones.size} inspecciones pendientes"
+            "Lectura en segundo plano: ${pendientes.rondas.size} rondas y " +
+                    "${pendientes.inspecciones.size} inspecciones pendientes"
         )
-
         return Result.success()
     }
 }
