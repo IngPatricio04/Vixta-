@@ -9,6 +9,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.vixta.app.datos.sincronizacion.EnviadorPendientes
+import com.vixta.app.datos.sincronizacion.SincronizadorPendientes
 
 @RunWith(AndroidJUnit4::class)
 class ColaSincronizacionLocalTest {
@@ -123,6 +125,76 @@ class ColaSincronizacionLocalTest {
             assertFalse(
                 cola.confirmarInspeccionEnviada(inspeccionActual)
             )
+            // Nuevos registros para probar el coordinador.
+            val rondaNueva = actual.copy(
+                id = "ronda-envio",
+                id_local = "ronda-local-envio",
+                sincronizada = false
+            )
+            base.rondaDao().insertar(rondaNueva)
+
+            val inspeccionNueva = inspeccionActual.copy(
+                id = "inspeccion-envio",
+                id_local = "inspeccion-local-envio",
+                ronda_id = rondaNueva.id,
+                sincronizada = false
+            )
+            base.inspeccionDao().insertar(inspeccionNueva)
+
+            val envios = mutableListOf<String>()
+            var fallarInspeccion = true
+
+            val enviador = object : EnviadorPendientes {
+                override suspend fun enviarRonda(ronda: RondaEntity) {
+                    envios.add("ronda:${ronda.id_local}")
+                }
+
+                override suspend fun enviarInspeccion(
+                    inspeccion: InspeccionEntity
+                ) {
+                    envios.add("inspeccion:${inspeccion.id_local}")
+
+                    if (fallarInspeccion) {
+                        throw java.io.IOException("Fallo de red simulado")
+                    }
+                }
+            }
+
+            val sincronizador = SincronizadorPendientes(cola, enviador)
+
+// Primer envío: la ronda se confirma y la inspección falla.
+            var falloDetectado = false
+            try {
+                sincronizador.sincronizar()
+            } catch (error: java.io.IOException) {
+                falloDetectado = true
+            }
+
+            assertTrue(falloDetectado)
+            assertTrue(cola.obtenerPendientes().rondas.isEmpty())
+            assertEquals(
+                listOf(inspeccionNueva),
+                cola.obtenerPendientes().inspecciones
+            )
+            assertEquals(
+                listOf(
+                    "ronda:${rondaNueva.id_local}",
+                    "inspeccion:${inspeccionNueva.id_local}"
+                ),
+                envios
+            )
+
+// Segundo envío: solo se reintenta la inspección pendiente.
+            fallarInspeccion = false
+            envios.clear()
+
+            assertTrue(sincronizador.sincronizar())
+            assertEquals(
+                listOf("inspeccion:${inspeccionNueva.id_local}"),
+                envios
+            )
+            assertTrue(cola.obtenerPendientes().rondas.isEmpty())
+            assertTrue(cola.obtenerPendientes().inspecciones.isEmpty())
         } finally {
             base.close()
         }
