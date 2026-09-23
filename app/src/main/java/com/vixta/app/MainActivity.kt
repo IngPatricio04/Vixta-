@@ -15,6 +15,7 @@ import com.vixta.app.ui.theme.VixtaTheme
 import com.vixta.app.navegacion.VixtaNavHost
 import androidx.lifecycle.lifecycleScope
 import com.vixta.app.datos.local.DatabaseProvider
+import com.vixta.app.datos.local.DatosDemo
 import kotlinx.coroutines.launch
 import android.util.Log
 import kotlinx.coroutines.flow.first
@@ -68,6 +69,9 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+        // Integración (22-sep): los puntos fríos de demostración, el catálogo que después bajará del
+        // servidor (actividad 20). Es idempotente: si ya están, no hace nada.
+        lifecycleScope.launch { DatosDemo.sembrar(applicationContext) }
         enableEdgeToEdge()
         setContent {
             VixtaTheme {

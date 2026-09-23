@@ -1,23 +1,32 @@
 package com.vixta.app.navegacion
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.vixta.app.datos.remoto.AuthRepositorio
-import com.vixta.app.login.LoginScreen
-import com.vixta.app.dashboard.DashboardScreen
-import com.vixta.app.escaneo.EscaneoScreen
-import com.vixta.app.inspeccion.InspeccionScreen
-import com.vixta.app.revision.RevisionScreen
 import com.vixta.app.alertas.AlertasScreen
-import com.vixta.app.historial.HistorialScreen
+import com.vixta.app.alertas.AlertasViewModel
 import com.vixta.app.configuracion.ConfiguracionScreen
+import com.vixta.app.dashboard.DashboardScreen
+import com.vixta.app.dashboard.DashboardViewModel
+import com.vixta.app.datos.local.RepositorioRondas
+import com.vixta.app.datos.remoto.AuthRepositorio
+import com.vixta.app.escaneo.EscaneoScreen
+import com.vixta.app.escaneo.EscaneoViewModel
+import com.vixta.app.historial.HistorialScreen
+import com.vixta.app.inspeccion.InspeccionScreen
+import com.vixta.app.inspeccion.InspeccionViewModel
+import com.vixta.app.login.LoginScreen
+import com.vixta.app.revision.RevisionScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun VixtaNavHost() {
@@ -34,6 +43,10 @@ fun VixtaNavHost() {
 @Composable
 private fun NavegacionVixta(destinoInicial: String) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // Una sola base para todas las pantallas: la de Pablo (vixta.db), a través del repositorio
+    val repositorio = remember { RepositorioRondas(context.applicationContext) }
 
     NavHost(navController = navController, startDestination = destinoInicial) {
 
@@ -46,27 +59,50 @@ private fun NavegacionVixta(destinoInicial: String) {
 
         composable("dashboard") {
             DashboardScreen(
+                viewModel = viewModel { DashboardViewModel(repositorio) },
                 onIrAEscanear = { navController.navigate("escaneo") },
                 onIrAAlertas = { navController.navigate("alertas") },
-                onIrAHistorial = { navController.navigate("historial") },
                 onIrAConfiguracion = { navController.navigate("configuracion") }
             )
         }
 
         composable("escaneo") {
-            EscaneoScreen(onCodigoEscaneado = { navController.navigate("inspeccion") })
+            EscaneoScreen(
+                viewModel = viewModel { EscaneoViewModel(repositorio) },
+                onCodigoEscaneado = { rondaId ->
+                    // El escáner sale de la pila: «atrás» desde el checklist no abre otra ronda
+                    navController.navigate("inspeccion/$rondaId") { popUpTo("escaneo") { inclusive = true } }
+                },
+                onVolverAlTablero = { navController.popBackStack() }
+            )
         }
 
-        composable("inspeccion") {
-            InspeccionScreen(onSiguiente = { navController.navigate("revision") })
+        // Checklist de la ronda que abrió el QR (pantalla de Cristian)
+        composable("inspeccion/{rondaId}") { entrada ->
+            val rondaId = entrada.arguments?.getString("rondaId").orEmpty()
+            InspeccionScreen(
+                viewModel = viewModel { InspeccionViewModel(repositorio) },
+                rondaId = rondaId,
+                onSiguiente = { navController.navigate("revision/$rondaId") }
+            )
         }
 
-        composable("revision") {
-            RevisionScreen(onGuardar = { navController.navigate("dashboard") })
+        composable("revision/{rondaId}") { entrada ->
+            val rondaId = entrada.arguments?.getString("rondaId").orEmpty()
+            RevisionScreen(onGuardar = {
+                scope.launch {
+                    // Se cierra la ronda: completa si se marcaron todos los pasos. El tablero se actualiza solo
+                    repositorio.cerrarRonda(rondaId)
+                    navController.popBackStack("dashboard", inclusive = false)
+                }
+            })
         }
 
         composable("alertas") {
-            AlertasScreen(onVolver = { navController.popBackStack() })
+            AlertasScreen(
+                viewModel = viewModel { AlertasViewModel(repositorio) },
+                onVolver = { navController.popBackStack() }
+            )
         }
 
         composable("historial") {

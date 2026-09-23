@@ -27,4 +27,12 @@ interface RondaDao {
     ORDER BY iniciada_en ASC, id_local ASC
 """)
     fun observarPendientes(): Flow<List<RondaEntity>>
+
+    // Integración 22-sep: el semáforo del tablero y el cierre de la ronda
+    @Query("SELECT * FROM ronda WHERE iniciada_en >= :desde")
+    fun observarDesde(desde: String): Flow<List<RondaEntity>>
+
+    /** Todo cambio local vuelve a marcar la ronda como pendiente de subir. */
+    @Query("UPDATE ronda SET estado = :estado, cerrada_en = :cerradaEn, sincronizada = 0 WHERE id = :id")
+    suspend fun cerrar(id: String, estado: String, cerradaEn: String)
 }
