@@ -14,6 +14,7 @@ lo encuentre sin pedirlo por WhatsApp.
 | `mockups/Vixta_Mockups_e_Mapa.pdf` | **Los mockups y el mapa de navegación.** De aquí sale la paleta | 7-sep-2026 |
 | `mockups/Vixta_Mockups_1er_Avance.pdf` | La versión anterior de los mockups | ago-2026 |
 | `modelo-datos/esquema.sql` | **El esquema real**, ya ejecutado en Supabase. 7 tablas | 2-sep-2026 |
+| `modelo-datos/auth_roles.sql` | **Autenticación y roles (act. 12):** liga `usuario` con Supabase Auth y activa RLS en las 7 tablas. Se corre después de `esquema.sql` | 22-sep-2026 |
 | `modelo-datos/modelo_datos_mermaid.png` | Diagrama entidad-relación | 2-sep-2026 |
 | `modelo-datos/arquitectura_capas_mermaid.png` | Diagrama de capas | 2-sep-2026 |
 | `modelo-datos/flujo_sincronizacion_mermaid.png` | Flujo de sincronización offline-first | 2-sep-2026 |
