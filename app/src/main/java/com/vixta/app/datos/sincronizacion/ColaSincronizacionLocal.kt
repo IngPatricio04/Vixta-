@@ -21,4 +21,36 @@ class ColaSincronizacionLocal(
             )
         }
     }
+
+    suspend fun confirmarRondaEnviada(
+        enviada: RondaEntity
+    ): Boolean {
+        return base.withTransaction {
+            val actual = base.rondaDao()
+                .buscarPorIdLocal(enviada.id_local)
+
+            if (enviada.sincronizada || actual != enviada) {
+                return@withTransaction false
+            }
+
+            base.rondaDao()
+                .marcarSincronizada(enviada.id_local) == 1
+        }
+    }
+
+    suspend fun confirmarInspeccionEnviada(
+        enviada: InspeccionEntity
+    ): Boolean {
+        return base.withTransaction {
+            val actual = base.inspeccionDao()
+                .buscarPorIdLocal(enviada.id_local)
+
+            if (enviada.sincronizada || actual != enviada) {
+                return@withTransaction false
+            }
+
+            base.inspeccionDao()
+                .marcarSincronizada(enviada.id_local) == 1
+        }
+    }
 }
