@@ -174,5 +174,6 @@ alter table ronda      enable row level security;
 alter table inspeccion enable row level security;
 alter table alerta     enable row level security;
 
--- Las politicas concretas se definen en la actividad 12,
--- "Autenticacion y roles".
+-- Las politicas concretas, el RLS de las otras cuatro tablas y la liga
+-- de usuario con Supabase Auth estan en auth_roles.sql (actividad 12,
+-- "Autenticacion y roles"). Se corre DESPUES de este archivo.

@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 @Composable
 fun RevisionScreen(onGuardar: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+    Column(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(24.dp)) {
         Text("Checklist de ronda")
         Button(onClick = onGuardar) { Text("Guardar y volver al tablero") }
     }

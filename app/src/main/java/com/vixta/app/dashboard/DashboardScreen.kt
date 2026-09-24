@@ -1,24 +1,167 @@
 package com.vixta.app.dashboard
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.vixta.app.datos.local.EstadoSemaforo
+import com.vixta.app.datos.local.PuntoTablero
+import com.vixta.app.datos.remoto.AuthRepositorio
+import com.vixta.app.ui.theme.VixtaError
+import com.vixta.app.ui.theme.VixtaOk
+import com.vixta.app.ui.theme.VixtaTextoSuave
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    viewModel: DashboardViewModel,
     onIrAEscanear: () -> Unit,
     onIrAAlertas: () -> Unit,
-    onIrAHistorial: () -> Unit,
-    onIrAConfiguracion: () -> Unit
+    onIrAConfiguracion: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    val puntosFrios by viewModel.puntosFrios.collectAsState()
+    // Actividad 12: quién tiene la sesión y con qué rol, tal como vino de la base
+    val sesion by AuthRepositorio.sesion.collectAsState()
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            "Tablero de Puntos Fríos",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        sesion?.let {
+                            Text(
+                                "${it.nombre} · ${it.rolLegible}",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
+                actions = {
+                    TextButton(onClick = onIrAAlertas) {
+                        Text(
+                            "Alertas",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    TextButton(onClick = onIrAConfiguracion) {
+                        Text(
+                            "Sesión",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onIrAEscanear,
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            ) {
+                Text("Escanear QR")
+            }
+        }
+    ) { paddingValues ->
+        if (puntosFrios.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No hay puntos fríos registrados",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(puntosFrios) { punto ->
+                    PuntoFrioItem(punto = punto)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PuntoFrioItem(punto: PuntoTablero) {
+    // El semáforo: verde al día, gris pendiente, rojo con alerta. Lleva la palabra, no sólo el color
+    val (colorSemaforo, textoSemaforo) = when (punto.estado) {
+        EstadoSemaforo.AL_DIA -> VixtaOk to "Al día"
+        EstadoSemaforo.PENDIENTE -> VixtaTextoSuave to "Pendiente"
+        EstadoSemaforo.CON_ALERTA -> VixtaError to "Con alerta"
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Text("Dashboard")
-        Button(onClick = onIrAEscanear) { Text("Escanear") }
-        Button(onClick = onIrAAlertas) { Text("Alertas") }
-        Button(onClick = onIrAHistorial) { Text("Historial") }
-        Button(onClick = onIrAConfiguracion) { Text("Configuración") }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = punto.nombre,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Ubicación: ${punto.ubicacion}",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = textoSemaforo,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorSemaforo
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(color = colorSemaforo, shape = CircleShape)
+                )
+            }
+        }
     }
 }
