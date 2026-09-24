@@ -55,6 +55,7 @@ fun ConfiguracionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding() // sin esto el título queda debajo de la hora (la app dibuja de borde a borde)
             .padding(20.dp)
     ) {
         Text("Configuración", fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -137,7 +138,7 @@ fun ConfiguracionScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            "La app funciona completa sin conexión; todo se guarda localmente y se sube solo al recuperar la red.",
+            "La app funciona completa sin conexión: todo se guarda primero en el teléfono. La subida automática al servidor llega con la actividad 20.",
             fontSize = 12.sp,
             color = Color.Gray
         )

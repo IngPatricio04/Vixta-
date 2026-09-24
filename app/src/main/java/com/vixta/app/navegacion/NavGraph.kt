@@ -2,6 +2,7 @@ package com.vixta.app.navegacion
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.vixta.app.alertas.AlertasScreen
 import com.vixta.app.alertas.AlertasViewModel
 import com.vixta.app.configuracion.ConfiguracionScreen
+import com.vixta.app.configuracion.ConfiguracionViewModel
 import com.vixta.app.dashboard.DashboardScreen
 import com.vixta.app.dashboard.DashboardViewModel
 import com.vixta.app.datos.local.RepositorioRondas
@@ -110,7 +112,12 @@ private fun NavegacionVixta(destinoInicial: String) {
         }
 
         composable("configuracion") {
+            // La tarjeta «Cola de sincronización» con los números de la base local y el estado real de la red
+            val configuracion = viewModel { ConfiguracionViewModel(repositorio, context.applicationContext) }
+            val estadoConfiguracion by configuracion.estado.collectAsState()
             ConfiguracionScreen(
+                estado = estadoConfiguracion,
+                onSincronizarAhora = configuracion::sincronizarAhora,
                 onVolver = { navController.popBackStack() },
                 onCerrarSesion = {
                     // Se limpia toda la pila: después de salir, nadie regresa con «atrás»

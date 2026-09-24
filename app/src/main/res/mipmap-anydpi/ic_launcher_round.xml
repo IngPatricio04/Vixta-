@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- El mismo ícono que ic_launcher.xml, para los launchers que piden la versión redonda -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+    <background android:drawable="@color/vixta_icono_fondo" />
+    <foreground android:drawable="@drawable/ic_launcher_vixta" />
 </adaptive-icon>

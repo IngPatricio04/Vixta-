@@ -41,4 +41,8 @@ interface RondaDao {
     /** Todo cambio local vuelve a marcar la ronda como pendiente de subir. */
     @Query("UPDATE ronda SET estado = :estado, cerrada_en = :cerradaEn, sincronizada = 0 WHERE id = :id")
     suspend fun cerrar(id: String, estado: String, cerradaEn: String)
+
+    // Integración 24-sep: la tarjeta «Cola de sincronización» de Configuración
+    @Query("SELECT COUNT(*) FROM ronda WHERE estado = 'completa'")
+    fun observarCompletas(): Flow<Int>
 }

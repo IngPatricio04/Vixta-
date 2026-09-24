@@ -29,6 +29,9 @@ data class PuntoTablero(
 /** Lo que devuelve escanear un QR válido: la ronda que se abrió y en qué punto. */
 data class RondaIniciada(val rondaId: String, val puntoNombre: String)
 
+/** La tarjeta «Cola de sincronización»: lo que el teléfono guarda y todavía no sube (la cola de Pablo). */
+data class ResumenCola(val pendientes: Int, val fotosEvidencia: Int, val rondasCompletas: Int)
+
 /**
  * Lo que las pantallas de la ronda leen y escriben: tablero, escaneo, checklist y alertas.
  *
@@ -41,6 +44,17 @@ data class RondaIniciada(val rondaId: String, val puntoNombre: String)
 class RepositorioRondas(context: Context) {
 
     private val base = DatabaseProvider.obtener(context)
+
+    /** Configuración: pendientes = rondas + inspecciones con sincronizada = false, las mismas que envía la cola. */
+    fun observarResumenCola(): Flow<ResumenCola> =
+        combine(
+            base.rondaDao().observarPendientes(),
+            base.inspeccionDao().observarPendientes(),
+            base.inspeccionDao().observarConFoto(),
+            base.rondaDao().observarCompletas()
+        ) { rondas, inspecciones, conFoto, completas ->
+            ResumenCola(pendientes = rondas.size + inspecciones.size, fotosEvidencia = conFoto, rondasCompletas = completas)
+        }
 
     /**
      * Pantalla 2. El semáforo sale de los datos, no se guarda:

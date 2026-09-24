@@ -4,6 +4,8 @@
 
     <!-- Actividad 12: el login habla con Supabase. Lo demás funciona sin red. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Configuración muestra si hay red («Conectado» / «Sin señal») -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Escaneo QR (Cristian): la cámara. No bloquea la instalación en equipos sin ella -->
     <uses-permission android:name="android.permission.CAMERA" />

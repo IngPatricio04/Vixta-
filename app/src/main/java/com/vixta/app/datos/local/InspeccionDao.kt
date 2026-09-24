@@ -32,4 +32,8 @@ interface InspeccionDao {
     WHERE id_local = :idLocal AND sincronizada = 0
 """)
     suspend fun marcarSincronizada(idLocal: String): Int
+
+    // Integración 24-sep: la tarjeta «Cola de sincronización» de Configuración
+    @Query("SELECT COUNT(*) FROM inspeccion WHERE foto_url IS NOT NULL")
+    fun observarConFoto(): Flow<Int>
 }
