@@ -218,7 +218,9 @@ begin
             where r.id = inspeccion.ronda_id and r.usuario_id = (select auth.uid())));
 
     -- alerta: el operador ve y levanta las de sus inspecciones; el supervisor
-    -- ve todas y es el unico que las atiende, a su nombre.
+    -- ve todas y es el unico que las atiende, a su nombre. Una alerta nace
+    -- abierta y sin atender: si no, un operador podria crearla ya cerrada y
+    -- firmada por un supervisor (hallazgo de security-review, 24-sep).
     drop policy if exists alerta_ver     on public.alerta;
     drop policy if exists alerta_crear   on public.alerta;
     drop policy if exists alerta_atender on public.alerta;
@@ -230,10 +232,15 @@ begin
             where i.id = alerta.inspeccion_id and r.usuario_id = (select auth.uid())));
     create policy alerta_crear on public.alerta
         for insert to authenticated
-        with check (exists (
-            select 1 from public.inspeccion i
-            join public.ronda r on r.id = i.ronda_id
-            where i.id = alerta.inspeccion_id and r.usuario_id = (select auth.uid())));
+        with check (
+            estado = 'abierta'
+            and atendida_por is null
+            and atendida_en is null
+            and nota_atencion is null
+            and exists (
+                select 1 from public.inspeccion i
+                join public.ronda r on r.id = i.ronda_id
+                where i.id = alerta.inspeccion_id and r.usuario_id = (select auth.uid())));
     create policy alerta_atender on public.alerta
         for update to authenticated
         using ((select public.es_supervisor()))
