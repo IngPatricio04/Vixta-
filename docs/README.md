@@ -18,7 +18,15 @@ lo encuentre sin pedirlo por WhatsApp.
 | `modelo-datos/modelo_datos_mermaid.png` | Diagrama entidad-relación | 2-sep-2026 |
 | `modelo-datos/arquitectura_capas_mermaid.png` | Diagrama de capas | 2-sep-2026 |
 | `modelo-datos/flujo_sincronizacion_mermaid.png` | Flujo de sincronización offline-first | 2-sep-2026 |
-| `manuales/` | Manual técnico y manual de usuario | pendientes, noviembre |
+| `manuales/MANUAL_TECNICO.md` | Borrador del manual técnico: arquitectura, datos, seguridad, sincronización y pruebas | 22-sep-2026 |
+| `manuales/CONSULTAS_TRAZABILIDAD.md` | Consultas de historial por lote, punto frío y rango de fechas | 21-sep-2026 |
+| `manuales/MATRIZ_RLS.md` | Matriz de permisos para operador y supervisor | 21-sep-2026 |
+| `manuales/DISENO_ALMACENAMIENTO_EVIDENCIA.md` | Diseño offline-first para fotos y evidencia en Supabase Storage | 22-sep-2026 |
+| `manuales/FICHA_ENDPOINTS.md` | Contrato de los endpoints y reglas de validación para la actividad 19 | 22-sep-2026 |
+| `manuales/DICCIONARIO_DATOS.md` | Referencia de las siete tablas, sus campos, relaciones y reglas | 22-sep-2026 |
+| `manuales/PLAN_PRUEBAS_DATOS.md` | Casos, evidencia y dependencias para validar datos y endpoints | 22-sep-2026 |
+| `manuales/REGLAS_NEGOCIO.md` | Reglas funcionales de puntos, rondas, checklist, inspecciones y alertas | 22-sep-2026 |
+| `manuales/` | Manual de usuario | pendiente, noviembre |
 
 Los archivos `.mmd` son el código fuente de los diagramas: se editan como texto y se regeneran,
 no hay que redibujarlos.
