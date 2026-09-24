@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.vixta.app.datos.local.EstadoSemaforo
 import com.vixta.app.datos.local.PuntoTablero
 import com.vixta.app.datos.remoto.AuthRepositorio
+import com.vixta.app.ui.theme.VixtaError
+import com.vixta.app.ui.theme.VixtaOk
+import com.vixta.app.ui.theme.VixtaTextoSuave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,10 +115,11 @@ fun DashboardScreen(
 
 @Composable
 fun PuntoFrioItem(punto: PuntoTablero) {
-    val colorSemaforo = when (punto.estado) {
-        EstadoSemaforo.AL_DIA -> MaterialTheme.colorScheme.primary
-        EstadoSemaforo.PENDIENTE -> MaterialTheme.colorScheme.secondary
-        EstadoSemaforo.CON_ALERTA -> MaterialTheme.colorScheme.error
+    // El semáforo: verde al día, gris pendiente, rojo con alerta. Lleva la palabra, no sólo el color
+    val (colorSemaforo, textoSemaforo) = when (punto.estado) {
+        EstadoSemaforo.AL_DIA -> VixtaOk to "Al día"
+        EstadoSemaforo.PENDIENTE -> VixtaTextoSuave to "Pendiente"
+        EstadoSemaforo.CON_ALERTA -> VixtaError to "Con alerta"
     }
 
     Card(
@@ -144,11 +148,20 @@ fun PuntoFrioItem(punto: PuntoTablero) {
                 )
             }
 
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .background(color = colorSemaforo, shape = CircleShape)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = textoSemaforo,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorSemaforo
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(color = colorSemaforo, shape = CircleShape)
+                )
+            }
         }
     }
 }
