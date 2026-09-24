@@ -26,4 +26,10 @@ interface InspeccionDao {
     ORDER BY capturada_en ASC, id_local ASC
 """)
     fun observarPendientes(): Flow<List<InspeccionEntity>>
+    @Query("""
+    UPDATE inspeccion
+    SET sincronizada = 1
+    WHERE id_local = :idLocal AND sincronizada = 0
+""")
+    suspend fun marcarSincronizada(idLocal: String): Int
 }
