@@ -1,0 +1,16 @@
+# AVANCE — Cristian — semana 1
+
+## Qué hice
+
+* Diseñé e implementé la interfaz de la **Pantalla de Checklist de ronda** (`RevisionScreen.kt`) utilizando componentes de Material 3 para el registro paso a paso de la inspección.
+* Implementé el modelado de estado (`RevisionUiState.kt`) integrando la estructura de **SelloEvidencia** para la captura inmutable de marcas de tiempo e información GPS (latitud, longitud y margen de precisión).
+* Desarrollé la lógica de negocio del flujo de inspección (`RevisionViewModel.kt`) con `StateFlow`, permitiendo la evaluación cualitativa (*Conforme* / *Con Alerta*) y el avance secuencial paso a paso.
+* Construí la vista de cierre y resumen de ronda con confirmación local de guardado y retorno al tablero principal.
+* Resolví conflictos de versionamiento local y sincronicé los cambios en la rama remota `feature/dashboard` sin alterar la paleta global del equipo.
+
+## Cómo lo hice
+Implementé la arquitectura MVVM junto con Jetpack Compose y Material 3. El estado reactivo se maneja a través de un `StateFlow` en el `RevisionViewModel`, asegurando que al iniciar la ronda y al responder cada punto de la lista se genere automáticamente un **sello de evidencia inmutable** con fecha, hora y coordenadas GPS (`SelloEvidencia`) antes de cualquier persistencia o sincronización.
+## Qué entrego
+Cambios commiteados y subidos a la rama remota `feature/dashboard` con la estructura del **Módulo de Checklist de ronda**. Se verifica así: compilar la aplicación, abrir el flujo de revisión, observar el sello de evidencia con GPS/hora en tiempo real, interactuar con los botones de evaluación (*Conforme* / *Con Alerta*) para avanzar secuencialmente entre ítems y confirmar la pantalla de resumen al finalizar el recorrido.
+## Qué me bloqueó
+Se presentaron conflictos leves al fusionar cambios locales previos en `RevisionScreen.kt`, los cuales se resolvieron mediante el manejo de `stash` y la alineación directa con la rama remota. Quedo en espera de que el equipo revise la rama `feature/dashboard` para la posterior integración a la rama principal.
